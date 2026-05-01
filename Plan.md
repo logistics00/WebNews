@@ -87,6 +87,8 @@ Rewrite the file as a clean username/password login form:
 
 Replace `src/app/login/page.tsx` with the same form as Step 2 (no Google, no `showAdminLogin` toggle). Keeps any old bookmarks to `/login` working.
 
+src/app/login/page.tsx now contains the same clean username/password form as src/app/page.tsx — no Google, no showAdminLogin toggle. Old /login bookmarks will continue to work and show identical behavior to /.
+
 ### Step 4 — Delete obsolete Google-only files
 
 - `src/app/login/page copy.tsx` — delete.
