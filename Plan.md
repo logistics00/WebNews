@@ -109,6 +109,14 @@ src/app/login/page.tsx now contains the same clean username/password form as src
     ```
   - Replace the "ingelogd met Google" message and `session.user?.name` reference with a neutral "Welkom" (the cookie carries no user name).
 
+
+- Deleted src/auth.ts (Google-only NextAuth v5 file — staged)
+- Deleted src/app/api/auth/[...nextauth]/route.ts (staged); the empty [...nextauth]/ and auth/ parent dirs were cleaned up by git rm
+- Modified src/app/playlists/page.tsx:
+  - Removed import { auth } from "@/auth"
+  - Replaced await auth() with cookies() check on admin_logged_in
+  - Replaced "ingelogd met Google" / session.user?.name with neutral "Welkom"
+
 ### Step 6 — Create `.env`
 
 Create `C:\Sync\JavaScript\Prog\NextJS\courses\WDS\WebNews\.env` with:
@@ -157,3 +165,32 @@ Paste the output into `HASHED_ADMIN_PASSWORD`.
 | Create  | `.env`                                                                            |
 
 Awaiting your "implement" before any of this is executed.
+
+## Step 8: Still ToDo
+
+
+● Three separate things, each one a known issue the plan deliberately did not touch:
+
+1. Middleware-level /admin protection
+   The login form sets a cookie admin_logged_in=true, and pages like playlists/page.tsx check that cookie themselves. But /admin and /admin/* pages currently do not check it — anyone who types
+   http://localhost:3005/admin straight into the address bar lands inside the admin dashboard without ever logging in. Closing that hole needs a middleware.ts file at the project root that intercepts
+   every request to /admin/*, checks the cookie, and redirects to / if it's missing. That's a small but separate piece of work.
+2. Stripe / Resend / YouTube env vars
+   The codebase still talks to three external services:
+
+- Stripe — payment checkout (needs STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, etc.)
+- Resend — sends transactional emails (needs RESEND_API_KEY)
+- YouTube Data API — fetches video metadata (needs YOUTUBE_API_KEY or similar)
+
+  If any of those keys are missing or wrong, only the feature that uses them breaks (checkout fails, email doesn't send, YouTube lookup throws). The login flow we just fixed is unaffected. Since you
+  copied the original .env from MP100, they're probably already there — but if any of those features later misbehave, that .env is the first place to check.
+
+3. The npm run email script copying .env into node_modules
+   Look at package.json — the email script is something like cp .env ./node_modules/react-email && email dev …. It physically copies your .env file (which now contains your admin password hash, Stripe
+   keys, etc.) into the node_modules/react-email/ folder so the React Email dev server can read those vars. That's poor hygiene because:
+
+- node_modules/ gets blown away and reinstalled regularly — your secrets get written there each time.
+- If you ever zip up node_modules or share it, the secrets travel with it.
+- Most other tooling expects .env only to live at the project root.
+
+  Fixing it would mean either passing env vars to React Email a different way, or limiting what's copied. Not urgent, just worth knowing.
