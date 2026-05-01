@@ -1,0 +1,26 @@
+import { google } from 'googleapis'
+import { NextResponse } from 'next/server'
+
+export async function POST(request: Request) {
+  const { accessToken, playlistId } = await request.json()
+
+  if (!accessToken || !playlistId) {
+    return NextResponse.json({ error: 'Both Access token and playlist ID are required' }, { status: 400 })
+  }
+
+  const oauth2Client = new google.auth.OAuth2()
+  oauth2Client.setCredentials({ access_token: accessToken })
+
+  const youtube = google.youtube({ version: 'v3', auth: oauth2Client })
+
+  try {
+    await youtube.playlists.delete({
+      id: playlistId,
+    })
+
+    return NextResponse.json({ success: `Playlist ${playlistId} is successfully deleted` })
+  } catch (error) {
+    console.error(`Error deleting playlist ${playlistId}:`, error)
+    return NextResponse.json({ error: `Failed to delete playlist ${playlistId}` }, { status: 500 })
+  }
+}
