@@ -42,7 +42,6 @@ Ad 3: a
 
 ## Quick summary of the plan
 
-
 - Resolves the duplicate-/ route by moving the catalog home page to /home.
 - Rewrites src/app/page.tsx and src/app/login/page.tsx as identical clean username/password forms (no Google, no toggle).
 - Deletes Google-only code: src/auth.ts, the [...nextauth] route, and the two stale login/page backups.
@@ -61,6 +60,12 @@ Action: move the catalog homepage out of the way so `/` is unambiguously the log
 
 - Move `src/app/(customerFacing)/page.tsx` → `src/app/(customerFacing)/home/page.tsx`.
 - Result: catalog homepage becomes reachable at `/home`. (If you'd rather delete it outright, say so before I implement.)
+
+Created feature branch feature/username-password-login (per CLAUDE.md "always work on feature branches")
+
+Moved src/app/(customerFacing)/page.tsx → src/app/(customerFacing)/home/page.tsx using git mv (preserves history as a rename)
+
+The catalog homepage will be reachable at /home; / is now unambiguously controlled by src/app/page.tsx
 
 ### Step 2 — Replace `src/app/page.tsx` with a username/password form
 
