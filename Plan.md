@@ -77,6 +77,12 @@ Rewrite the file as a clean username/password login form:
 - On failure: show "Ongeldige gebruikersnaam of wachtwoord".
 - No Google references, no toggles.
 
+
+- src/app/page.tsx rewritten as a username/password form
+- Two fields (username text, password password), error area, submit button
+- POST to /api/admin/login with { username, password }; on response.ok → router.push('/admin'); on failure → "Ongeldige gebruikersnaam of wachtwoord"
+- All Google references removed; no toggle
+
 ### Step 3 — Make `/login` mirror `/`
 
 Replace `src/app/login/page.tsx` with the same form as Step 2 (no Google, no `showAdminLogin` toggle). Keeps any old bookmarks to `/login` working.
