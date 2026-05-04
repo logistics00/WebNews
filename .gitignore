@@ -47,6 +47,7 @@ next-env.d.ts
 /products
 /public/files/
 /public/images/
+/logging/
 
 # Claude
 settings.local.json

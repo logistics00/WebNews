@@ -43,22 +43,18 @@ export default async function WebNewsUpdateType({ params: { id } }: { params: { 
     if (parsed.success) {
       const updatePageData = parsed.data
 
-      // Get the records which must be removed
-      const data = await db.webNews.findMany({
-        where: {
-          page: id,
-        },
-      })
-
-      // Move the records to the new position
-      data.map(async (dat) => {
-        dat.page = updatePageData.page
-        await db.webNews.update({
-          where: {
-            id: dat.id,
-          },
-          data: dat,
+      await db.$transaction(async (tx) => {
+        await tx.webNews.updateMany({
+          where: { page: id },
+          data: { page: updatePageData.page },
         })
+        const pageRow = await tx.page.findUnique({ where: { name: id } })
+        if (pageRow) {
+          await tx.page.update({
+            where: { name: id },
+            data: { name: updatePageData.page },
+          })
+        }
       })
 
       redirect(`/admin/webnews/${updatePageData.page}/display`)

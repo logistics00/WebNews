@@ -54,6 +54,17 @@ model DownloadVerification {
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+model Page {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  column    Int
+  row       Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([column, row])
+}
+
 model WebNews {
   id                     String                 @id @default(uuid())
   page                   String

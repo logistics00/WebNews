@@ -226,6 +226,39 @@ function splitCore(data: string): Record<string, string> {
   }, {})
 }
 
+const pageSchema = z.object({
+  name: z.string().trim().min(1),
+  column: z.coerce.number().int().min(1).max(5),
+  row: z.coerce.number().int().min(1).max(7),
+})
+
+export async function addPage(prevState: unknown, formData: FormData) {
+  logging({ rootPath: 'admin/_actions/webnews.ts', func: 'addPage' })
+
+  const input = Object.fromEntries(formData.entries())
+  const parsed = pageSchema.safeParse(input)
+  if (!parsed.success) return parsed.error.formErrors.fieldErrors
+
+  const { name, column, row } = parsed.data
+
+  const existing = await db.page.findUnique({ where: { name } })
+  if (existing) return { name: ['A page with this name already exists.'] }
+
+  await db.$transaction(async (tx) => {
+    const toShift = await tx.page.findMany({
+      where: { column, row: { gte: row } },
+      orderBy: { row: 'desc' },
+    })
+    for (const p of toShift) {
+      await tx.page.update({ where: { id: p.id }, data: { row: p.row + 1 } })
+    }
+    await tx.page.create({ data: { name, column, row } })
+  })
+
+  revalidatePath('/admin/webnews/newspages')
+  redirect(`/admin/webnews/${name},New,1/new-record`)
+}
+
 export async function webNewsDeleteRecord(id: string) {
   logging({ rootPath: 'admin/_actions/webnews.ts[158]', func: 'webNewsDeleteRecord' })
   const webNews = await db.webNews.findUnique({ where: { id: id } })
@@ -257,12 +290,16 @@ export async function webNewsDeletePage(page: string) {
   const webNews = await db.webNews.findMany({ where: { page: page } })
   if (webNews === null) return notFound()
 
-  const deleted = await db.webNews.deleteMany({ where: { page: page } })
+  await db.$transaction(async (tx) => {
+    await tx.webNews.deleteMany({ where: { page } })
+    await tx.page.deleteMany({ where: { name: page } })
+  })
 
   revalidatePath('/')
   revalidatePath('/webnews')
+  revalidatePath('/admin/webnews/newspages')
 
-  redirect(`/admin/webnews/${page}/display`)
+  redirect(`/admin/webnews/newspages`)
 }
 
 const updateSchema = z.object({
